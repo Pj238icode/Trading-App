@@ -84,21 +84,30 @@ public class AppConfig {
 		}
 		
 	    // CORS Configuration
-	    private CorsConfigurationSource corsConfigurationSource() {
-        return request -> {
-            CorsConfiguration cfg = new CorsConfiguration();
-            cfg.setAllowedOrigins(Arrays.asList(
-                    "https://tradingapp1.netlify.app"   
-                             
-            ));
-            cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-            cfg.setAllowCredentials(true);
-            cfg.setAllowedHeaders(Collections.singletonList("*"));
-            cfg.setExposedHeaders(Arrays.asList("Authorization"));
-            cfg.setMaxAge(3600L);
-            return cfg;
-        };
-    }
+	    @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+           return request -> {
+        CorsConfiguration cfg = new CorsConfiguration();
+
+        // ✅ Explicitly allow your frontend and local dev origins
+        cfg.setAllowedOrigins(Arrays.asList(
+                "https://tradingapp1.netlify.app",
+                "http://localhost:5173",
+                "http://localhost:3000"
+        ));
+
+        // ✅ Or use allowedOriginPatterns for flexibility
+        // cfg.addAllowedOriginPattern("*");
+
+        cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        cfg.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
+        cfg.setExposedHeaders(Arrays.asList("Authorization"));
+        cfg.setAllowCredentials(true);
+        cfg.setMaxAge(3600L);
+        return cfg;
+    };
+}
+
 
 	    @Bean
 	    PasswordEncoder passwordEncoder() {

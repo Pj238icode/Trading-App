@@ -44,16 +44,19 @@ export const login = (userData) => async (dispatch) => {
     const response = await axios.post(`${API_BASE_URL}/auth/signin`, userData);
     const user = response.data;
 
+    // Store JWT if present (even for 2FA)
+    if (user.jwt) {
+      localStorage.setItem("jwt", user.jwt);
+    }
+
     if (user.twoFactorAuthEnabled) {
+      // Navigate to 2FA page
       userData.navigate(`/two-factor-auth/${user.session}`);
       return;
     }
 
-    if (user.jwt) {
-      localStorage.setItem("jwt", user.jwt);
-      toast.success("Login successful!");
-      userData.navigate("/");
-    }
+    toast.success("Login successful!");
+    userData.navigate("/");
 
     dispatch({ type: actionTypes.LOGIN_SUCCESS, payload: user.jwt });
   } catch (error) {
@@ -66,6 +69,7 @@ export const login = (userData) => async (dispatch) => {
     });
   }
 };
+
 
 // ===============================
 // TWO-STEP VERIFICATION

@@ -20,47 +20,51 @@ import java.util.List;
 
 public class JwtTokenValidator extends OncePerRequestFilter {
 
-	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-			throws ServletException, IOException {
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        // Skip JWT validation for public endpoints
+        return path.startsWith("/api/users/verification") 
+                || path.startsWith("/auth/users/reset-password");
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         String jwt = request.getHeader(JwtConstant.JWT_HEADER);
-	    System.out.println("Authorization header received: " + jwt);
+        System.out.println("Authorization header received: " + jwt);
 
-		
-		if(jwt!=null) {
-		    if (jwt.startsWith("Bearer ")) {
-                  jwt = jwt.substring(7);
-           }
-			
-			
-			try {
-				
-				SecretKey key= Keys.hmacShaKeyFor(JwtConstant.SECRET_KEY.getBytes());
-				
-				Claims claims=Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt).getBody();
-				
-				String email=String.valueOf(claims.get("email"));
-				
-				String authorities=String.valueOf(claims.get("authorities"));
-				
-				System.out.println("authorities -------- "+authorities);
-				
-				List<GrantedAuthority> auths=AuthorityUtils.commaSeparatedStringToAuthorityList(authorities);
-				Authentication athentication=new UsernamePasswordAuthenticationToken(email,null, auths);
-				
-				SecurityContextHolder.getContext().setAuthentication(athentication);
-				
-			} catch (Exception e) {
-				System.out.println("JWT Validation Error: " + e.getMessage());
+        if (jwt != null && !jwt.equals("null")) { // only parse if JWT is present
+            if (jwt.startsWith("Bearer ")) {
+                jwt = jwt.substring(7);
+            }
+
+            try {
+                SecretKey key = Keys.hmacShaKeyFor(JwtConstant.SECRET_KEY.getBytes());
+
+                Claims claims = Jwts.parserBuilder()
+                        .setSigningKey(key)
+                        .build()
+                        .parseClaimsJws(jwt)
+                        .getBody();
+
+                String email = String.valueOf(claims.get("email"));
+                String authorities = String.valueOf(claims.get("authorities"));
+
+                System.out.println("authorities -------- " + authorities);
+
+                List<GrantedAuthority> auths = AuthorityUtils.commaSeparatedStringToAuthorityList(authorities);
+                Authentication authentication = new UsernamePasswordAuthenticationToken(email, null, auths);
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            } catch (Exception e) {
+                System.out.println("JWT Validation Error: " + e.getMessage());
                 e.printStackTrace();
-                throw new RuntimeException("Invalid token: " + e.getMessage());
-				
-			}
-		}
-		filterChain.doFilter(request, response);
-		
-	}
+                // Do NOT throw exception; just continue as anonymous user
+            }
+        }
 
-
-
+        filterChain.doFilter(request, response);
+    }
 }

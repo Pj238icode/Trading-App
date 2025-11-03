@@ -12,13 +12,20 @@ const api = axios.create({
   },
 });
 
-// ✅ Interceptor ensures the newest token is always used
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('jwt');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+// ✅ Always attach the latest valid token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('jwt');
+    if (token && token !== 'null' && token !== 'undefined') {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log('🟢 Sending JWT:', token.substring(0, 20) + '...'); // Optional debug
+    } else {
+      delete config.headers.Authorization; // 🔥 Prevent "Bearer null"
+      console.warn('⚠️ No valid JWT found in localStorage');
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 export default api;

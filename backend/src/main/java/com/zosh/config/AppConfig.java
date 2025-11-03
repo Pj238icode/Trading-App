@@ -23,23 +23,29 @@ public class AppConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         http
-            .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-             .authorizeHttpRequests(auth -> auth
-         
-            .requestMatchers(
-                    "/api/users/**",
-                    "/auth/**",             // also allow password reset/auth routes
-                    "/login/**",
-                    "/oauth2/**"
-            ).permitAll()
+            // ✅ Stateless for REST API (JWT-based)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-         
-            .requestMatchers("/api/**").authenticated()
+            // ✅ Authorization rules
+            .authorizeHttpRequests(auth -> auth
+                // Public endpoints (no token required)
+                .requestMatchers(
+                        "/auth/**",        // for login, register, reset password
+                        "/login/**",
+                        "/oauth2/**"
+                ).permitAll()
 
-            // 👇 Allow everything else (like static files, root, etc.)
-            .anyRequest().permitAll()
-    )
+                // Protected endpoints (token required)
+                .requestMatchers("/api/users/**").authenticated()
+                .requestMatchers("/api/**").authenticated()
+
+                // Everything else
+                .anyRequest().permitAll()
+            )
+
+            // ✅ OAuth2 login success handling
             .oauth2Login(oauth -> {
                 oauth.loginPage("/login/google");
                 oauth.authorizationEndpoint(authorization ->
@@ -50,6 +56,7 @@ public class AppConfig {
                                                         HttpServletResponse response,
                                                         Authentication authentication)
                             throws IOException, ServletException {
+
                         if (authentication.getPrincipal() instanceof DefaultOAuth2User userDetails) {
                             String email = userDetails.getAttribute("email");
                             String fullName = userDetails.getAttribute("name");
@@ -60,14 +67,20 @@ public class AppConfig {
                             user.setFullName(fullName);
                             user.setVerified(emailVerified);
 
-                            System.out.println("OAuth2 Login Success: " + user);
+                            System.out.println("✅ OAuth2 Login Success: " + user);
                         }
                     }
                 });
             })
+
+            // ✅ Add JWT validator before standard authentication
             .addFilterBefore(new JwtTokenValidator(), BasicAuthenticationFilter.class)
-            .csrf(csrf -> csrf.disable()) // ✅ Keep CSRF disabled for REST APIs
-            .cors(cors -> cors.disable()); // ✅ Disable local CORS (now handled globally)
+
+            // ✅ Disable CSRF (for APIs)
+            .csrf(csrf -> csrf.disable())
+
+            // ✅ CORS handled globally (not here)
+            .cors(cors -> cors.disable());
 
         return http.build();
     }

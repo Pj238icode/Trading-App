@@ -25,17 +25,20 @@ public class UserServiceImplementation implements UserService {
 	
 	
 	@Override
-	public User findUserProfileByJwt(String jwt) throws UserException {
-		String email= JwtProvider.getEmailFromJwtToken(jwt);
-		
-		
-		User user = userRepository.findByEmail(email);
-		
-		if(user==null) {
-			throw new UserException("user not exist with email "+email);
-		}
-		return user;
-	}
+    public User findUserProfileByJwt(String jwt) throws UserException {
+    String email = JwtProvider.getEmailFromJwtToken(jwt);
+    if (email == null) {
+        throw new UserException("Invalid or expired JWT token");
+    }
+
+    User user = userRepository.findByEmail(email);
+    if (user == null) {
+        throw new UserException("User not found with email " + email);
+    }
+
+    return user;
+}
+
 	
 	@Override
 	public User findUserByEmail(String username) throws UserException {

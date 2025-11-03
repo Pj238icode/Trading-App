@@ -30,20 +30,22 @@ public class AppConfig {
 
             // ✅ Authorization rules
             .authorizeHttpRequests(auth -> auth
-                // Public endpoints (no token required)
-                .requestMatchers(
-                        "/auth/**",        // for login, register, reset password
-                        "/login/**",
-                        "/oauth2/**"
-                ).permitAll()
+    // ✅ Public endpoints (no JWT required)
+    .requestMatchers(
+        "/api/users/reset-password/**",
+        "/api/users/verification/**",
+        "/auth/**",
+        "/login/**",
+        "/oauth2/**"
+    ).permitAll()
 
-                // Protected endpoints (token required)
-                .requestMatchers("/api/users/**").authenticated()
-                .requestMatchers("/api/**").authenticated()
+    // 🔒 All other /api endpoints need authentication
+    .requestMatchers("/api/**").authenticated()
 
-                // Everything else
-                .anyRequest().permitAll()
-            )
+    // 🌐 Everything else (like frontend) open
+    .anyRequest().permitAll()
+)
+
 
             // ✅ OAuth2 login success handling
             .oauth2Login(oauth -> {

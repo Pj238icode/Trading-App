@@ -3,6 +3,9 @@ import * as actionTypes from "./ActionTypes";
 import api, { API_BASE_URL } from "@/Api/api";
 import { toast } from "react-toastify";
 
+// ===============================
+// REGISTER
+// ===============================
 export const register = (userData) => async (dispatch) => {
   dispatch({ type: actionTypes.REGISTER_REQUEST });
   try {
@@ -17,13 +20,12 @@ export const register = (userData) => async (dispatch) => {
     dispatch({ type: actionTypes.REGISTER_SUCCESS, payload: user.jwt });
   } catch (error) {
     const errMsg = error.response?.data?.message || "Something went wrong!";
-    console.log("register error: ", errMsg);
-
-    if (errMsg.toLowerCase().includes("exists")) {
-      toast.error("Account already exists!");
-    } else {
-      toast.error("Account already exists!");
-    }
+    console.log("register error:", errMsg);
+    toast.error(
+      errMsg.toLowerCase().includes("exists")
+        ? "Account already exists!"
+        : "Registration failed!"
+    );
 
     dispatch({
       type: actionTypes.REGISTER_FAILURE,
@@ -32,7 +34,9 @@ export const register = (userData) => async (dispatch) => {
   }
 };
 
+// ===============================
 // LOGIN
+// ===============================
 export const login = (userData) => async (dispatch) => {
   dispatch({ type: actionTypes.LOGIN_REQUEST });
   try {
@@ -53,14 +57,8 @@ export const login = (userData) => async (dispatch) => {
     dispatch({ type: actionTypes.LOGIN_SUCCESS, payload: user.jwt });
   } catch (error) {
     const errMsg = error.response?.data?.message || "Invalid credentials!";
-    console.log("login error: ", errMsg);
-
-    if (errMsg.toLowerCase().includes("invalid")) {
-      toast.error("Incorrect email or password!");
-    } else {
-      toast.error("Incorrect email or password!");
-    }
-
+    console.log("login error:", errMsg);
+    toast.error("Incorrect email or password!");
     dispatch({
       type: actionTypes.LOGIN_FAILURE,
       payload: errMsg,
@@ -68,7 +66,9 @@ export const login = (userData) => async (dispatch) => {
   }
 };
 
-
+// ===============================
+// TWO-STEP VERIFICATION
+// ===============================
 export const twoStepVerification =
   ({ otp, session, navigate }) =>
   async (dispatch) => {
@@ -77,206 +77,197 @@ export const twoStepVerification =
       const response = await axios.post(
         `${API_BASE_URL}/auth/two-factor/otp/${otp}`,
         {},
-        {
-          params: { id: session },
-        }
+        { params: { id: session } }
       );
       const user = response.data;
 
       if (user.jwt) {
         localStorage.setItem("jwt", user.jwt);
-        console.log("login ", user);
+        toast.success("Login successful!");
         navigate("/");
       }
+
       dispatch({ type: actionTypes.LOGIN_TWO_STEP_SUCCESS, payload: user.jwt });
     } catch (error) {
-      console.log("catch error", error);
+      console.log("two-step error:", error);
       dispatch({
         type: actionTypes.LOGIN_TWO_STEP_FAILURE,
-        payload: error.response?.data ? error.response.data : error,
+        payload: error.response?.data || error,
       });
     }
   };
 
-//  get user from token
-export const getUser = (token) => {
-  return async (dispatch) => {
-    dispatch({ type: actionTypes.GET_USER_REQUEST });
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/users/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const user = response.data;
-      dispatch({ type: actionTypes.GET_USER_SUCCESS, payload: user });
-      console.log("req User ", user);
-    } catch (error) {
-      const errorMessage = null;
-      dispatch({ type: actionTypes.GET_USER_FAILURE, payload: errorMessage });
-    }
-  };
+// ===============================
+// GET USER FROM TOKEN
+// ===============================
+export const getUser = (token) => async (dispatch) => {
+  dispatch({ type: actionTypes.GET_USER_REQUEST });
+  try {
+    const response = await axios.get(`${API_BASE_URL}/api/users/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const user = response.data;
+    console.log("req User:", user);
+    dispatch({ type: actionTypes.GET_USER_SUCCESS, payload: user });
+  } catch {
+    dispatch({ type: actionTypes.GET_USER_FAILURE, payload: null });
+  }
 };
 
-export const sendVerificationOtp = ({ jwt, verificationType }) => {
-  return async (dispatch) => {
+// ===============================
+// SEND VERIFICATION OTP
+// ===============================
+export const sendVerificationOtp =
+  ({ jwt, verificationType }) =>
+  async (dispatch) => {
     dispatch({ type: actionTypes.SEND_VERIFICATION_OTP_REQUEST });
     try {
       const response = await api.post(
         `/api/users/verification/${verificationType}/send-otp`,
-        {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
+        {},
+        { headers: { Authorization: `Bearer ${jwt}` } }
       );
       const user = response.data;
+      console.log("send otp:", user);
+      toast.success("OTP sent successfully!");
       dispatch({
         type: actionTypes.SEND_VERIFICATION_OTP_SUCCESS,
         payload: user,
       });
-      console.log("send otp ", user);
     } catch (error) {
-      console.log("error ", error);
-      const errorMessage = error.message;
+      console.log("send otp error:", error);
+      toast.error("Failed to send OTP!");
       dispatch({
         type: actionTypes.SEND_VERIFICATION_OTP_FAILURE,
-        payload: errorMessage,
+        payload: error.message,
       });
     }
   };
-};
 
-export const verifyOtp = ({ jwt, otp }) => {
-  console.log("jwt", jwt);
-  return async (dispatch) => {
+// ===============================
+// VERIFY OTP
+// ===============================
+export const verifyOtp =
+  ({ jwt, otp }) =>
+  async (dispatch) => {
+    console.log("jwt", jwt);
     dispatch({ type: actionTypes.VERIFY_OTP_REQUEST });
     try {
       const response = await api.patch(
         `/api/users/verification/verify-otp/${otp}`,
-        {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
+        {},
+        { headers: { Authorization: `Bearer ${jwt}` } }
       );
       const user = response.data;
+      console.log("verify otp:", user);
+      toast.success("OTP verified successfully!");
       dispatch({ type: actionTypes.VERIFY_OTP_SUCCESS, payload: user });
-      console.log("verify otp ", user);
     } catch (error) {
-      console.log("error ", error);
-      const errorMessage = error.message;
-      dispatch({ type: actionTypes.VERIFY_OTP_FAILURE, payload: errorMessage });
+      console.log("verify otp error:", error);
+      toast.error("Invalid OTP!");
+      dispatch({
+        type: actionTypes.VERIFY_OTP_FAILURE,
+        payload: error.message,
+      });
     }
   };
-};
 
-export const enableTwoStepAuthentication = ({ jwt, otp }) => {
-  console.log("jwt", jwt);
-  return async (dispatch) => {
+// ===============================
+// ENABLE TWO-STEP AUTHENTICATION
+// ===============================
+export const enableTwoStepAuthentication =
+  ({ jwt, otp }) =>
+  async (dispatch) => {
+    console.log("jwt", jwt);
     dispatch({ type: actionTypes.ENABLE_TWO_STEP_AUTHENTICATION_REQUEST });
     try {
       const response = await api.patch(
         `/api/users/enable-two-factor/verify-otp/${otp}`,
-        {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
+        {},
+        { headers: { Authorization: `Bearer ${jwt}` } }
       );
       const user = response.data;
+      console.log("enable 2FA:", user);
+      toast.success("Two-step authentication enabled!");
       dispatch({
         type: actionTypes.ENABLE_TWO_STEP_AUTHENTICATION_SUCCESS,
         payload: user,
       });
-      console.log("enable two step authentication ", user);
     } catch (error) {
-      console.log("error ", error);
-      const errorMessage = error.message;
+      console.log("enable 2FA error:", error);
+      toast.error("Failed to enable 2FA!");
       dispatch({
         type: actionTypes.ENABLE_TWO_STEP_AUTHENTICATION_FAILURE,
-        payload: errorMessage,
+        payload: error.message,
       });
     }
   };
-};
 
-export const sendResetPassowrdOTP = ({
-  sendTo,
-  verificationType,
-  navigate,
-}) => {
-  console.log("send otp ", sendTo);
-  return async (dispatch) => {
+// ===============================
+// SEND RESET PASSWORD OTP
+// ===============================
+export const sendResetPassowrdOTP =
+  ({ sendTo, verificationType, navigate }) =>
+  async (dispatch) => {
+    console.log("send reset otp:", sendTo);
     dispatch({ type: actionTypes.SEND_RESET_PASSWORD_OTP_REQUEST });
     try {
       const response = await axios.post(
         `${API_BASE_URL}/auth/users/reset-password/send-otp`,
-        {
-          sendTo,
-          verificationType,
-        }
+        { sendTo, verificationType }
       );
       const user = response.data;
+      toast.success("OTP sent successfully!");
       navigate(`/reset-password/${user.session}`);
       dispatch({
         type: actionTypes.SEND_RESET_PASSWORD_OTP_SUCCESS,
         payload: user,
       });
-      console.log("otp sent successfully ", user);
     } catch (error) {
-      console.log("error ", error);
-      const errorMessage = error.message;
+      console.log("send reset otp error:", error);
+      toast.error("Failed to send reset OTP!");
       dispatch({
         type: actionTypes.SEND_RESET_PASSWORD_OTP_FAILURE,
-        payload: errorMessage,
+        payload: error.message,
       });
     }
   };
-};
 
-export const verifyResetPassowrdOTP = ({
-  otp,
-  password,
-  session,
-  navigate,
-}) => {
-  return async (dispatch) => {
+// ===============================
+// VERIFY RESET PASSWORD OTP
+// ===============================
+export const verifyResetPassowrdOTP =
+  ({ otp, password, session, navigate }) =>
+  async (dispatch) => {
     dispatch({ type: actionTypes.VERIFY_RESET_PASSWORD_OTP_REQUEST });
     try {
       const response = await axios.patch(
         `${API_BASE_URL}/auth/users/reset-password/verify-otp`,
-        {
-          otp,
-          password,
-        },
-        {
-          params: {
-            id: session,
-          },
-        }
+        { otp, password },
+        { params: { id: session } }
       );
       const user = response.data;
+      toast.success("Password updated successfully!");
+      navigate("/password-update-successfully");
       dispatch({
         type: actionTypes.VERIFY_RESET_PASSWORD_OTP_SUCCESS,
         payload: user,
       });
-      navigate("/password-update-successfully");
-      console.log("VERIFY otp successfully ", user);
     } catch (error) {
-      console.log("error ", error);
-      const errorMessage = error.message;
+      console.log("verify reset otp error:", error);
+      toast.error("OTP verification failed!");
       dispatch({
         type: actionTypes.VERIFY_RESET_PASSWORD_OTP_FAILURE,
-        payload: errorMessage,
+        payload: error.message,
       });
     }
   };
-};
 
-export const logout = () => {
-  return async (dispatch) => {
-    dispatch({ type: actionTypes.LOGOUT });
-    localStorage.clear();
-  };
+// ===============================
+// LOGOUT
+// ===============================
+export const logout = () => async (dispatch) => {
+  localStorage.clear();
+  toast.info("Logged out successfully!");
+  dispatch({ type: actionTypes.LOGOUT });
 };

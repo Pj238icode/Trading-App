@@ -25,10 +25,21 @@ public class AppConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/**").authenticated()
-                    .anyRequest().permitAll()
-            )
+             .authorizeHttpRequests(auth -> auth
+         
+            .requestMatchers(
+                    "/api/users/**",
+                    "/auth/**",             // also allow password reset/auth routes
+                    "/login/**",
+                    "/oauth2/**"
+            ).permitAll()
+
+         
+            .requestMatchers("/api/**").authenticated()
+
+            // 👇 Allow everything else (like static files, root, etc.)
+            .anyRequest().permitAll()
+    )
             .oauth2Login(oauth -> {
                 oauth.loginPage("/login/google");
                 oauth.authorizationEndpoint(authorization ->

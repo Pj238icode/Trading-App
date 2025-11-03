@@ -84,22 +84,12 @@ public class AppConfig {
 		}
 		
 	    // CORS Configuration
-	    @Bean
-        public CorsConfigurationSource corsConfigurationSource() {
-           return request -> {
+	     @Bean
+CorsConfigurationSource corsConfigurationSource() {
+    return request -> {
         CorsConfiguration cfg = new CorsConfiguration();
-
-        // ✅ Explicitly allow your frontend and local dev origins
-        cfg.setAllowedOrigins(Arrays.asList(
-                "https://tradingapp1.netlify.app",
-                "http://localhost:5173",
-                "http://localhost:3000"
-        ));
-
-        // ✅ Or use allowedOriginPatterns for flexibility
-        // cfg.addAllowedOriginPattern("*");
-
-        cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        cfg.setAllowedOrigins(Arrays.asList("https://tradingapp1.netlify.app"));
+        cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         cfg.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
         cfg.setExposedHeaders(Arrays.asList("Authorization"));
         cfg.setAllowCredentials(true);
@@ -107,6 +97,8 @@ public class AppConfig {
         return cfg;
     };
 }
+
+	   
 
 
 	    @Bean

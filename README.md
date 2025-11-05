@@ -26,9 +26,10 @@
 - **Wallet History:** Access detailed logs of all wallet transactions.
 - **Search Coin:** Effortlessly search for any cryptocurrency and view essential information for informed trading.
 
-### Robust Authentication & Security
+### Authentication & Security
 - **Login & Register:** Simple and secure user authentication.
-- **Two-Factor Authentication (2FA):** Extra layer of security for user accounts.
+- **OAuth Login:** Login via Google.
+- **Two-Factor Authentication:** Extra layer of security for user accounts.
 - **Forgot Password:** Easy password recovery process.
 
 ---
@@ -60,6 +61,10 @@
 ---
 
 ## Demo 📸
+
+
+
+https://github.com/user-attachments/assets/4231304a-da75-4a18-87ba-dc5ca58d2e7a
 
 
 

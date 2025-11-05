@@ -100,7 +100,7 @@ public class AppConfig {
 	                CorsConfiguration cfg = new CorsConfiguration();
 	                cfg.setAllowedOrigins(List.of(
 
-                            "http://localhost:5173"
+                            "https://tradingapp12.netlify.app"
 
                     ));
 	                cfg.setAllowedMethods(Collections.singletonList("*"));

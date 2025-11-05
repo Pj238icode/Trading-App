@@ -63,6 +63,7 @@
 
 
 
+
 ---
 
 ## Installation & Setup ⚙️
@@ -82,8 +83,43 @@
    mvn clean install
 5. Configure environment variables in application.properties (MySQL, JWT secret, payment gateway keys, etc.).
 6. Run the Spring Boot application:
+   ```bash
+   mvn spring-boot:run
+
+### Frontend
+1. Navigate to the frontend folder:
+   ```bash
+   cd frontend
+2. Install dependencies:
     ```bash
-    mvn spring-boot:run
+    npm install
+3. Start the development server:
+   ```bash
+    npm run dev
+4. Open your browser at:
+   ```bash
+   http://localhost:5173
+
+###Dockerization
+1. Build the Docker image:
+   ```bash
+   docker build -t market-dock .
+2. Run the Docker container:
+   ```bash
+   docker run -p 8080:8080 market-dock
+3. The application will be accessible at:
+   ```bash
+   http://localhost:8080
+
+
+
+
+
+   
+
+
+
+
 
    
 

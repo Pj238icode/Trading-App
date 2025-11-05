@@ -100,7 +100,7 @@
    ```bash
    http://localhost:5173
 
-###Dockerization
+### Dockerization
 1. Build the Docker image:
    ```bash
    docker build -t market-dock .

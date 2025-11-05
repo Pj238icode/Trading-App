@@ -59,8 +59,9 @@
 
 ---
 
-## Screenshots 📸
-*(Add screenshots here to showcase your app, e.g., Dashboard, Buy/Sell, Wallet, Portfolio)*
+## Demo 📸
+
+
 
 ---
 
@@ -70,6 +71,21 @@
 1. Clone the repository:
    ```bash
    git clone https://github.com/Pj238icode/Trading-App.git
-2.Run the Spring Boot application:
-  ```bash
-  mvn spring-boot:run
+2. Navigate to the backend folder
+   ```bash
+   cd backend
+3. Run the Spring Boot application:
+   ```bash
+   mvn spring-boot:run
+4. Install dependencies
+   ```bash
+   mvn clean install
+5. Configure environment variables in application.properties (MySQL, JWT secret, payment gateway keys, etc.).
+6. Run the Spring Boot application:
+    ```bash
+    mvn spring-boot:run
+
+   
+
+   
+
